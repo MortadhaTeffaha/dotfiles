@@ -1,0 +1,57 @@
+[golang]
+format = 'via [$symbol]($style)'
+
+[helm]
+format = 'via [$symbol]($style)'
+
+[lua]
+format = 'via [$symbol]($style)'
+
+[python]
+format = 'via [$symbol]($style)'
+
+[rust]
+format = 'via [$symbol]($style)'
+
+[aws]
+disabled = true
+
+[azure]
+disabled = true
+
+[gcloud]
+disabled = true
+
+#[kubernetes]
+#format = '[⛵ $context \($namespace\)](green) '
+#disabled = false
+#style = "blue"
+#contexts = [
+#  { context_pattern = "sdm1.us1.ddbuild.io", style = "red", symbol = "💔 "},
+#  { context_pattern = ".*staging.*", style = "green", symbol = "💔 "},
+#]
+
+
+[kubernetes]
+format = '[⛵ $symbol $context \($namespace\)]($style) '
+disabled = false
+style = "blue"
+symbol = ""
+
+
+[[kubernetes.contexts]]
+context_pattern = ".*staging.*"
+style = "green"
+context_alias = "Staging"
+symbol = "💚 "
+
+[[kubernetes.contexts]]
+context_pattern = "sdm1.us1.ddbuild.io"
+style = "red"
+symbol = " "
+
+
+[[kubernetes.contexts]]
+context_pattern = ".*prod.*"
+style = "red"
+symbol = " "

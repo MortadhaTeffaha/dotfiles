@@ -1,0 +1,37 @@
+## font
+font-family = MesloLGS NF Regular
+font-size = 16
+font-thicken = true
+
+shell-integration-features = cursor,sudo,title
+
+## Background
+background-opacity = 0.9
+background-blur-radius = 20
+
+## send CSI sequence to move word by word
+keybind = opt+left=text:\x1b\x62
+keybind = opt+right=text:\x1b\x66
+
+## copy-paste improvement
+clipboard-read = allow
+clipboard-paste-protection = false
+copy-on-select = clipboard
+copy-on-select = true
+## ensure closing is not annoying
+confirm-close-surface = false
+quit-after-last-window-closed = true
+
+
+## requires macos 15 
+#mouse-hide-while-typing = true
+
+## Other configuration
+window-save-state = always
+macos-titlebar-style = transparent
+theme = Catppuccin Macchiato
+macos-titlebar-style = hidden
+
+## ensure integrated shell is zsh
+shell-integration = zsh
+
