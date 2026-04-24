@@ -16,21 +16,28 @@ My configuration files, managed with [GNU Stow](https://www.gnu.org/software/sto
 | nvim | Neovim (LazyVim) |
 | starship | Shell prompt |
 | tmux | Terminal multiplexer |
+| zsh | Shell config (aliases, env, tools, keybinds) |
 
-## Setup
+## Fresh machine setup
 
-Prerequisites: [Homebrew](https://brew.sh) and git.
+Only [Homebrew](https://brew.sh) is required. Everything else is installed by the setup script.
 
 ```bash
-git clone https://github.com/MortadhaTeffaha/dotfiles.git
-cd dotfiles
+# 1. Install Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Install all tools via brew
+# 2. Clone and install
+git clone https://github.com/MortadhaTeffaha/dotfiles.git ~/dotfiles
+cd ~/dotfiles
 ./setup.sh
-
-# Symlink configs into $HOME
 ./stow.sh
+
+# 3. Wire zsh config into your .zshrc
+echo 'for f in ~/.config/zsh/*.sh; do source "$f"; done' >> ~/.zshrc
 ```
+
+The zsh source line must be added manually because `.zshrc` is not managed by this repo (it may contain machine-specific or private configuration).
 
 ## Usage
 

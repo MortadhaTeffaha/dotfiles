@@ -11,18 +11,27 @@ fi
 PACKAGES=(
   atuin
   bat
+  claude
   colima
+  eza
+  fzf
   ghostty
   k9s
+  kubectl
   lazygit
   neovim
+  pyenv
+  rbenv
   starship
   stow
   tmux
+  zoxide
 )
 
 # Map package name to brew formula when they differ
 declare -A BREW_NAME=(
+  [claude]="claude-code"
+  [kubectl]="kubernetes-cli"
   [neovim]="neovim"
 )
 
@@ -30,14 +39,21 @@ declare -A BREW_NAME=(
 declare -A BIN_NAME=(
   [atuin]="atuin"
   [bat]="bat"
+  [claude]="claude"
   [colima]="colima"
+  [eza]="eza"
+  [fzf]="fzf"
   [ghostty]="ghostty"
   [k9s]="k9s"
+  [kubectl]="kubectl"
   [lazygit]="lazygit"
   [neovim]="nvim"
+  [pyenv]="pyenv"
+  [rbenv]="rbenv"
   [starship]="starship"
   [stow]="stow"
   [tmux]="tmux"
+  [zoxide]="zoxide"
 )
 
 # Some packages are casks, not formulae

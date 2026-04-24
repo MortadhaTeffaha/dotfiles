@@ -14,6 +14,7 @@ PACKAGES=(
   nvim
   starship
   tmux
+  zsh
 )
 
 usage() {
