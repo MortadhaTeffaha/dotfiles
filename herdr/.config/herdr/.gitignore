@@ -1,0 +1,5 @@
+# Herdr runtime state and managed plugin checkouts
+.plugins.lock
+*.log
+*.sock
+plugins/

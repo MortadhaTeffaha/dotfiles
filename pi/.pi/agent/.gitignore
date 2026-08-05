@@ -1,0 +1,11 @@
+# Pi runtime state and credentials (created next to the stowed config)
+auth.json
+cache/
+extensions/trajectory/bin/
+git/
+mcp-cache.json
+mcp-oauth/
+npm/
+refresh-models-version.json
+sessions/
+trust.json

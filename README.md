@@ -11,9 +11,11 @@ My configuration files, managed with [GNU Stow](https://www.gnu.org/software/sto
 | colima | Container runtime |
 | ghostty | Terminal emulator |
 | git | Global gitignore |
+| herdr | Coding-agent terminal multiplexer, keybindings, and plugins |
 | k9s | Kubernetes TUI |
 | lazygit | Git TUI |
 | nvim | Neovim (LazyVim) |
+| pi | Pi coding agent settings, packages, extensions, skills, MCP, and theme |
 | starship | Shell prompt |
 | tmux | Terminal multiplexer |
 | zsh | Shell config (aliases, env, tools, keybinds) |
@@ -38,6 +40,10 @@ echo 'for f in ~/.config/zsh/*.sh; do source "$f"; done' >> ~/.zshrc
 ```
 
 The zsh source line must be added manually because `.zshrc` is not managed by this repo (it may contain machine-specific or private configuration).
+
+`setup.sh` detects the host with `uname`. macOS uses the existing Homebrew flow. Linux ARM64 (`arm64`/`aarch64`) auto-detects `apt`, `pacman`, `dnf`, or `apk`, uses native packages where available, installs Pi and Claude Code through npm, and installs Herdr through its official cross-platform installer. Unknown platforms fall back to the macOS flow. Ghostty and Colima are omitted from remote ARM64 installs. The script also restores the pinned Herdr plugins. Pi installs the package sources listed in `pi/.pi/agent/settings.json` automatically on first startup.
+
+Pi authentication, OAuth tokens, sessions, caches, trust decisions, and Herdr runtime data/logs are intentionally not tracked. The Trajectory Pi extension and MCP entry are included, but require the separately managed `~/.trajectory/bin/trajectory` installation. The local `../../dd/datadog-pi-packages/packages/refresh-models` package in Pi settings likewise requires that checkout at `~/dd/datadog-pi-packages`.
 
 ## Usage
 

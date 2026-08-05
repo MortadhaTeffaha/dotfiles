@@ -3,15 +3,21 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Keep mutable runtime data out of the repository. Without these real target
+# directories, Stow may fold all of ~/.pi or ~/.config/herdr into a symlink.
+mkdir -p "$HOME/.pi/agent" "$HOME/.config/herdr"
+
 PACKAGES=(
   atuin
   bat
   colima
   ghostty
   git
+  herdr
   k9s
   lazygit
   nvim
+  pi
   starship
   tmux
   zsh
