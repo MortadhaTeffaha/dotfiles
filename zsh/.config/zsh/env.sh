@@ -1,5 +1,8 @@
 # Homebrew (must be first — other tools depend on brew PATH)
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Login shells initialize this in .zprofile; inherited shells should not repeat it.
+if [[ -z "${HOMEBREW_PREFIX:-}" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 
 export XDG_CONFIG_HOME=~/.config
 

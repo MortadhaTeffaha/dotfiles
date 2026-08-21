@@ -14,6 +14,12 @@ local function set_transparent()
   vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
   vim.api.nvim_set_hl(0, "SignColumn", { bg = "none" })
   vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
+
+  -- Make line numbers easier to read
+  vim.api.nvim_set_hl(0, "LineNr", { fg = "#ffffff", bg = "none" })
+  vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#ffffff", bg = "none" })
+  vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#ffffff", bg = "none" })
+  vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#ffffff", bg = "none", bold = true })
 end
 
 vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
