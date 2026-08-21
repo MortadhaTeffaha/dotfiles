@@ -19,7 +19,7 @@ const MAX_SESSION_HEADER_BYTES = 64 * 1024;
 const PLUGIN_PROVENANCE = {
   plugin: {
     id: "trajectory-pi",
-    version: "3.2.2",
+    version: "3.2.3",
     source_scope: "trajectory_plugin",
   },
 };

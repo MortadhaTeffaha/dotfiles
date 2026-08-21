@@ -16,6 +16,15 @@
       "type": "http",
       "url": "https://lambo-mcp-server.mcp.us1.prod.dog/internal/mcp"
     },
+    "slack": {
+      "auth": "oauth",
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "redirectUri": "http://localhost:3118/callback"
+      },
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp"
+    },
     "trajectory": {
       "args": [
         "-lc",

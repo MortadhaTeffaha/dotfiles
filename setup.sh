@@ -316,9 +316,11 @@ done
 # checkouts stay outside the dotfiles repository.
 if command -v herdr &>/dev/null; then
   HERDR_PLUGINS=(
-    "herdr-file-viewer|smarzban/herdr-file-viewer|fa1946a04dd58ba9b3db2eda0125b6055fb604da"
-    "mirror|nikok6/herdr-mirror|a569217ae59166470aa6a1fc0bbca2dea196af64"
-    "persiyanov.reviewr|persiyanov/herdr-reviewr|42ccaaa72176937181c82a91484f97466fb5ed59"
+    "gh-pr|wyattjoh/herdr-plugin-gh-pr|6fe22de9a90c569f2186595cfddc3707f55ba1bd"
+    "herdr-file-viewer|smarzban/herdr-file-viewer|647f03236d9aa20de0b07c9de0a951e13a1e59bf"
+    "mirror|nikok6/herdr-mirror|41a5475fb5cfed11481a26b08f949f3f9e1588b5"
+    "persiyanov.reviewr|persiyanov/herdr-reviewr|b0a997d5e3f30ace4319f599f1a10f82031f355d"
+    "ray.plugin-manager|speardragon/herdr-plugin-manager|cc3370f9387ee994229693ae3dd783b859ab162b"
   )
 
   for plugin in "${HERDR_PLUGINS[@]}"; do

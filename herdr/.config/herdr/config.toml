@@ -1,3 +1,4 @@
+onboarding = false
 [[keys.command]]
 key = "prefix+f"
 type = "plugin_action"
@@ -9,3 +10,30 @@ key = "prefix+shift+f"
 type = "plugin_action"
 command = "herdr-file-viewer.open-file-viewer-tab"
 description = "open file viewer in tab"
+
+[[keys.command]]
+key = "prefix+p"
+type = "plugin_action"
+command = "ray.plugin-manager.open"
+description = "open plugin manager"
+
+[[keys.command]]
+key = "prefix+u"
+type = "plugin_action"
+command = "gh-pr.open-pr"
+description = "open PR in browser"
+
+[[keys.command]]
+key = "prefix+i"
+type = "plugin_action"
+command = "gh-pr.refresh"
+description = "refresh PR status"
+
+[[keys.command]]
+key = "prefix+shift+m"
+type = "shell"
+command = "pane_id=$(herdr pane current | jq -r '.result.pane.pane_id // empty'); test -n \"$pane_id\" && herdr pane move \"$pane_id\" --new-workspace --focus"
+description = "move focused pane to a new workspace"
+
+[ui.sidebar.agents]
+rows = [["state_icon", "workspace", "$pr"], ["agent"]]
