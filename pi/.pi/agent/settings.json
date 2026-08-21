@@ -7,6 +7,13 @@
   "skills": [
     "~/.claude/skills"
   ],
+  "powerline": {
+    "layout": {
+      "right": [
+        "session"
+      ]
+    }
+  },
   "packages": [
     "npm:context-mode",
     "npm:pi-web-access",

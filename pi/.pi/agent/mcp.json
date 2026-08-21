@@ -8,6 +8,10 @@
       "type": "http",
       "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=core,software-delivery,error-tracking,profiling,widgets,data-observability,workflows,observability-graph,security,audit-trail,governance,llmobs"
     },
+    "datadog-staging": {
+      "type": "http",
+      "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=core,software-delivery,error-tracking,profiling,widgets,data-observability,workflows,observability-graph,security,audit-trail,governance,llmobs"
+    },
     "datadog-google-workspace": {
       "type": "http",
       "url": "https://google-workspace-mcp-server-834963730936.us-central1.run.app/mcp"

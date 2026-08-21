@@ -1,39 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# uname reports the kernel (Darwin/Linux); uname -m reports the architecture.
-# Preserve the existing macOS/Homebrew flow by default, and use a native
-# Linux package manager only for ARM64/aarch64 hosts.
-PLATFORM="macos"
+# uname reports the kernel (Darwin/Linux); uname -m is retained for diagnostics.
+PLATFORM=""
 UNAME_SYSTEM="unknown"
 UNAME_MACHINE="unknown"
 
-if command -v uname &>/dev/null; then
-  UNAME_SYSTEM="$(uname -s 2>/dev/null || echo unknown)"
-  UNAME_MACHINE="$(uname -m 2>/dev/null || echo unknown)"
-
-  if [[ "$UNAME_SYSTEM" == "Darwin" ]]; then
-    PLATFORM="macos"
-  elif [[ "$UNAME_MACHINE" == "arm64" || "$UNAME_MACHINE" == "aarch64" ]]; then
-    PLATFORM="arm64"
-  fi
-else
-  echo "Warning: uname is unavailable; defaulting to the macOS setup."
+if ! command -v uname &>/dev/null; then
+  echo "Error: uname is required to detect the operating system." >&2
+  exit 1
 fi
 
-ARM_PACKAGE_MANAGER=""
-if [[ "$PLATFORM" == "arm64" ]]; then
+UNAME_SYSTEM="$(uname -s 2>/dev/null || echo unknown)"
+UNAME_MACHINE="$(uname -m 2>/dev/null || echo unknown)"
+
+case "$UNAME_SYSTEM" in
+  Darwin) PLATFORM="macos" ;;
+  Linux) PLATFORM="linux" ;;
+  *)
+    echo "Error: unsupported operating system: $UNAME_SYSTEM ($UNAME_MACHINE)." >&2
+    exit 1
+    ;;
+esac
+
+LINUX_PACKAGE_MANAGER=""
+if [[ "$PLATFORM" == "linux" ]]; then
   if command -v apt-get &>/dev/null; then
-    ARM_PACKAGE_MANAGER="apt"
+    LINUX_PACKAGE_MANAGER="apt"
   elif command -v pacman &>/dev/null; then
-    ARM_PACKAGE_MANAGER="pacman"
+    LINUX_PACKAGE_MANAGER="pacman"
   elif command -v dnf &>/dev/null; then
-    ARM_PACKAGE_MANAGER="dnf"
+    LINUX_PACKAGE_MANAGER="dnf"
   elif command -v apk &>/dev/null; then
-    ARM_PACKAGE_MANAGER="apk"
+    LINUX_PACKAGE_MANAGER="apk"
   else
-    echo "Warning: no supported ARM64 package manager found; defaulting to the macOS setup."
-    PLATFORM="macos"
+    echo "Error: Linux requires one of: apt-get, pacman, dnf, or apk." >&2
+    exit 1
   fi
 fi
 
@@ -48,8 +50,8 @@ run_as_root() {
   fi
 }
 
-install_arm_packages() {
-  case "$ARM_PACKAGE_MANAGER" in
+install_linux_packages() {
+  case "$LINUX_PACKAGE_MANAGER" in
     apt) run_as_root apt-get install -y "$@" ;;
     pacman) run_as_root pacman -S --needed --noconfirm "$@" ;;
     dnf) run_as_root dnf install -y "$@" ;;
@@ -88,10 +90,10 @@ if [[ "$PLATFORM" == "macos" ]]; then
     zoxide
   )
 else
-  echo "Detected $UNAME_SYSTEM $UNAME_MACHINE; using $ARM_PACKAGE_MANAGER packages."
+  echo "Detected $UNAME_SYSTEM $UNAME_MACHINE; using $LINUX_PACKAGE_MANAGER packages."
 
   # Desktop-only macOS tools (Ghostty and Colima) are intentionally omitted
-  # from remote ARM64 workspace installs.
+  # from remote Linux workspace installs.
   PACKAGES=(
     node
     atuin
@@ -113,10 +115,10 @@ else
     zoxide
   )
 
-  if [[ "$ARM_PACKAGE_MANAGER" == "apt" ]]; then
+  if [[ "$LINUX_PACKAGE_MANAGER" == "apt" ]]; then
     run_as_root apt-get update
   fi
-  install_arm_packages curl ca-certificates
+  install_linux_packages curl ca-certificates
 fi
 
 # Map package name to Homebrew formula when they differ.
@@ -155,13 +157,13 @@ declare -A IS_CASK=(
   [ghostty]=1
 )
 
-# Native package names for supported ARM64 package managers. An intentionally
+# Native package names for supported Linux package managers. An intentionally
 # empty mapping means that distribution does not provide a reliable package.
-declare -A ARM_NAME=()
-if [[ "$PLATFORM" == "arm64" ]]; then
-  case "$ARM_PACKAGE_MANAGER" in
+declare -A LINUX_NAME=()
+if [[ "$PLATFORM" == "linux" ]]; then
+  case "$LINUX_PACKAGE_MANAGER" in
     apt)
-      ARM_NAME=(
+      LINUX_NAME=(
         [bat]="bat"
         [eza]="eza"
         [fzf]="fzf"
@@ -177,7 +179,7 @@ if [[ "$PLATFORM" == "arm64" ]]; then
       )
       ;;
     pacman)
-      ARM_NAME=(
+      LINUX_NAME=(
         [atuin]="atuin"
         [bat]="bat"
         [eza]="eza"
@@ -195,7 +197,7 @@ if [[ "$PLATFORM" == "arm64" ]]; then
       )
       ;;
     dnf)
-      ARM_NAME=(
+      LINUX_NAME=(
         [bat]="bat"
         [eza]="eza"
         [fzf]="fzf"
@@ -208,7 +210,7 @@ if [[ "$PLATFORM" == "arm64" ]]; then
       )
       ;;
     apk)
-      ARM_NAME=(
+      LINUX_NAME=(
         [bat]="bat"
         [eza]="eza"
         [fzf]="fzf"
@@ -232,7 +234,7 @@ for pkg in "${PACKAGES[@]}"; do
   bin="${BIN_NAME[$pkg]:-$pkg}"
 
   # Debian-based distributions expose bat as batcat.
-  if [[ "$pkg" == "bat" && "$PLATFORM" == "arm64" ]] && command -v batcat &>/dev/null; then
+  if [[ "$pkg" == "bat" && "$PLATFORM" == "linux" ]] && command -v batcat &>/dev/null; then
     skipped+=("$pkg")
     continue
   fi
@@ -265,11 +267,11 @@ for pkg in "${PACKAGES[@]}"; do
   else
     case "$pkg" in
       node)
-        case "$ARM_PACKAGE_MANAGER" in
-          apt|dnf) arm_packages=(nodejs npm) ;;
-          pacman|apk) arm_packages=(nodejs npm) ;;
+        case "$LINUX_PACKAGE_MANAGER" in
+          apt|dnf) linux_packages=(nodejs npm) ;;
+          pacman|apk) linux_packages=(nodejs npm) ;;
         esac
-        if install_arm_packages "${arm_packages[@]}"; then
+        if install_linux_packages "${linux_packages[@]}"; then
           installed+=("$pkg")
         else
           failed+=("$pkg")
@@ -298,11 +300,11 @@ for pkg in "${PACKAGES[@]}"; do
         fi
         ;;
       *)
-        native_pkg="${ARM_NAME[$pkg]:-}"
+        native_pkg="${LINUX_NAME[$pkg]:-}"
         if [[ -z "$native_pkg" ]]; then
-          echo "No $ARM_PACKAGE_MANAGER package mapping for $pkg; skipping." >&2
+          echo "No $LINUX_PACKAGE_MANAGER package mapping for $pkg; skipping." >&2
           failed+=("$pkg")
-        elif install_arm_packages "$native_pkg"; then
+        elif install_linux_packages "$native_pkg"; then
           installed+=("$pkg")
         else
           failed+=("$pkg")
@@ -311,6 +313,41 @@ for pkg in "${PACKAGES[@]}"; do
     esac
   fi
 done
+
+# refresh-models is an opt-in package inside an internal monorepo, so Pi cannot
+# install it directly from the repository root. Keep a checkout at ~/dd, which
+# matches the portable relative path in pi/.pi/agent/settings.json. Datadog
+# Workspaces configures per-org Git authentication before running install.sh.
+DATADOG_PI_PACKAGES_DIR="${DATADOG_PI_PACKAGES_DIR:-$HOME/dd/datadog-pi-packages}"
+DATADOG_PI_PACKAGES_REPO="${DATADOG_PI_PACKAGES_REPO:-https://github.com/ddoghq-sandbox/datadog-pi-packages.git}"
+REFRESH_MODELS_MANIFEST="$DATADOG_PI_PACKAGES_DIR/packages/refresh-models/package.json"
+
+if [[ -d "$DATADOG_PI_PACKAGES_DIR/.git" ]]; then
+  echo "Updating internal Pi packages checkout..."
+  if ! git -C "$DATADOG_PI_PACKAGES_DIR" pull --ff-only; then
+    echo "Warning: could not update $DATADOG_PI_PACKAGES_DIR; using the existing checkout." >&2
+  fi
+elif [[ -e "$DATADOG_PI_PACKAGES_DIR" ]]; then
+  echo "Warning: $DATADOG_PI_PACKAGES_DIR exists but is not a Git checkout; refresh-models will not be installed." >&2
+else
+  echo "Cloning internal Pi packages for refresh-models..."
+  mkdir -p "$(dirname "$DATADOG_PI_PACKAGES_DIR")"
+  if command -v gh &>/dev/null; then
+    if ! gh repo clone ddoghq-sandbox/datadog-pi-packages "$DATADOG_PI_PACKAGES_DIR"; then
+      echo "Warning: GitHub CLI clone failed; trying Git with the workspace credential helper." >&2
+      git clone "$DATADOG_PI_PACKAGES_REPO" "$DATADOG_PI_PACKAGES_DIR" || true
+    fi
+  else
+    git clone "$DATADOG_PI_PACKAGES_REPO" "$DATADOG_PI_PACKAGES_DIR" || true
+  fi
+fi
+
+if [[ -f "$REFRESH_MODELS_MANIFEST" ]]; then
+  echo "refresh-models is available at $DATADOG_PI_PACKAGES_DIR/packages/refresh-models"
+else
+  echo "Warning: refresh-models is unavailable. Confirm access to ddoghq-sandbox/datadog-pi-packages." >&2
+  failed+=("refresh-models")
+fi
 
 # Reinstall the Herdr plugins used by this configuration. Runtime plugin
 # checkouts stay outside the dotfiles repository.
