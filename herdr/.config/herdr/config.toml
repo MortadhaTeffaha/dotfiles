@@ -35,5 +35,44 @@ type = "shell"
 command = "pane_id=$(herdr pane current | jq -r '.result.pane.pane_id // empty'); test -n \"$pane_id\" && herdr pane move \"$pane_id\" --new-workspace --focus"
 description = "move focused pane to a new workspace"
 
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "annotate.last"
+description = "annotate: review agent's last message"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "plugin_action"
+command = "annotate.open"
+description = "annotate: open workspace here"
+
+[[keys.command]]
+key = "prefix+n"
+type = "plugin_action"
+command = "annotate.capture"
+description = "annotate: comment on selection"
+
+[[keys.command]]
+key = "prefix+shift+n"
+type = "plugin_action"
+command = "annotate.manage"
+description = "annotate: manage annotations"
+
+[[keys.command]]
+key = "prefix+ctrl+c"
+type = "plugin_action"
+command = "annotate.copy-context"
+description = "annotate: copy annotations as markdown"
+
+[[keys.command]]
+key = "prefix+shift+o"
+type = "shell"
+command = "pane_id=$(herdr pane split --current --direction right --focus 2>&1 | jq -r '.result.pane.pane_id // empty'); test -n \"$pane_id\" && herdr pane run \"$pane_id\" ~/.config/herdr/plugins/github/annotate-9c299759567c/bin/plannotator-tui.exe /tmp/plans"
+description = "annotate: open /tmp/plans in plannotator-tui"
+
 [ui.sidebar.agents]
 rows = [["state_icon", "workspace", "$pr"], ["agent"]]
+
+[worktrees]
+directory = "/Users/mortadha.teffaha/go/src/github.com/DataDog/worktree"

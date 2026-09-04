@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# User-local binaries include Herdr and Linux tools installed from source.
+export PATH="$HOME/.local/bin:$PATH"
+
 # uname reports the kernel (Darwin/Linux); uname -m is retained for diagnostics.
 PLATFORM=""
 UNAME_SYSTEM="unknown"
 UNAME_MACHINE="unknown"
+VHS_VERSION="0.11.0"
+TTYD_VERSION="1.7.7"
 
 if ! command -v uname &>/dev/null; then
   echo "Error: uname is required to detect the operating system." >&2
@@ -73,6 +78,7 @@ if [[ "$PLATFORM" == "macos" ]]; then
     claude
     colima
     eza
+    ffmpeg
     fzf
     ghostty
     k9s
@@ -87,6 +93,8 @@ if [[ "$PLATFORM" == "macos" ]]; then
     starship
     stow
     tmux
+    ttyd
+    vhs
     zoxide
   )
 else
@@ -100,7 +108,9 @@ else
     bat
     claude
     eza
+    ffmpeg
     fzf
+    go
     k9s
     kubectl
     lazygit
@@ -112,6 +122,8 @@ else
     starship
     stow
     tmux
+    ttyd
+    vhs
     zoxide
   )
 
@@ -135,8 +147,10 @@ declare -A BIN_NAME=(
   [claude]="claude"
   [colima]="colima"
   [eza]="eza"
+  [ffmpeg]="ffmpeg"
   [fzf]="fzf"
   [ghostty]="ghostty"
+  [go]="go"
   [k9s]="k9s"
   [kubectl]="kubectl"
   [lazygit]="lazygit"
@@ -149,6 +163,8 @@ declare -A BIN_NAME=(
   [starship]="starship"
   [stow]="stow"
   [tmux]="tmux"
+  [ttyd]="ttyd"
+  [vhs]="vhs"
   [zoxide]="zoxide"
 )
 
@@ -166,7 +182,9 @@ if [[ "$PLATFORM" == "linux" ]]; then
       LINUX_NAME=(
         [bat]="bat"
         [eza]="eza"
+        [ffmpeg]="ffmpeg"
         [fzf]="fzf"
+        [go]="golang-go"
         [kubectl]="kubectl"
         [lazygit]="lazygit"
         [neovim]="neovim"
@@ -175,6 +193,7 @@ if [[ "$PLATFORM" == "linux" ]]; then
         [starship]="starship"
         [stow]="stow"
         [tmux]="tmux"
+        [ttyd]="ttyd"
         [zoxide]="zoxide"
       )
       ;;
@@ -183,7 +202,9 @@ if [[ "$PLATFORM" == "linux" ]]; then
         [atuin]="atuin"
         [bat]="bat"
         [eza]="eza"
+        [ffmpeg]="ffmpeg"
         [fzf]="fzf"
+        [go]="go"
         [k9s]="k9s"
         [kubectl]="kubectl"
         [lazygit]="lazygit"
@@ -193,6 +214,7 @@ if [[ "$PLATFORM" == "linux" ]]; then
         [starship]="starship"
         [stow]="stow"
         [tmux]="tmux"
+        [ttyd]="ttyd"
         [zoxide]="zoxide"
       )
       ;;
@@ -200,12 +222,15 @@ if [[ "$PLATFORM" == "linux" ]]; then
       LINUX_NAME=(
         [bat]="bat"
         [eza]="eza"
+        [ffmpeg]="ffmpeg-free"
         [fzf]="fzf"
+        [go]="golang"
         [kubectl]="kubernetes-client"
         [neovim]="neovim"
         [rbenv]="rbenv"
         [stow]="stow"
         [tmux]="tmux"
+        [ttyd]="ttyd"
         [zoxide]="zoxide"
       )
       ;;
@@ -213,13 +238,16 @@ if [[ "$PLATFORM" == "linux" ]]; then
       LINUX_NAME=(
         [bat]="bat"
         [eza]="eza"
+        [ffmpeg]="ffmpeg"
         [fzf]="fzf"
+        [go]="go"
         [kubectl]="kubectl"
         [lazygit]="lazygit"
         [neovim]="neovim"
         [starship]="starship"
         [stow]="stow"
         [tmux]="tmux"
+        [ttyd]="ttyd"
         [zoxide]="zoxide"
       )
       ;;
@@ -293,7 +321,41 @@ for pkg in "${PACKAGES[@]}"; do
         ;;
       herdr)
         if curl -fsSL https://herdr.dev/install.sh | sh; then
-          export PATH="$HOME/.local/bin:$PATH"
+          installed+=("$pkg")
+        else
+          failed+=("$pkg")
+        fi
+        ;;
+      ttyd)
+        case "$UNAME_MACHINE" in
+          x86_64|amd64)
+            ttyd_asset="ttyd.x86_64"
+            ttyd_sha256="8a217c968aba172e0dbf3f34447218dc015bc4d5e59bf51db2f2cd12b7be4f55"
+            ;;
+          arm64|aarch64)
+            ttyd_asset="ttyd.aarch64"
+            ttyd_sha256="b38acadd89d1d396a0f5649aa52c539edbad07f4bc7348b27b4f4b7219dd4165"
+            ;;
+          *)
+            ttyd_asset=""
+            ttyd_sha256=""
+            ;;
+        esac
+        mkdir -p "$HOME/.local/bin"
+        ttyd_tmp="$(mktemp)"
+        ttyd_url="https://github.com/tsl0922/ttyd/releases/download/$TTYD_VERSION/$ttyd_asset"
+        if [[ -n "$ttyd_asset" ]] && command -v sha256sum &>/dev/null && curl -fL "$ttyd_url" -o "$ttyd_tmp" && printf '%s  %s\n' "$ttyd_sha256" "$ttyd_tmp" | sha256sum -c - >/dev/null; then
+          chmod 0755 "$ttyd_tmp"
+          mv "$ttyd_tmp" "$HOME/.local/bin/ttyd"
+          installed+=("$pkg")
+        else
+          rm -f "$ttyd_tmp"
+          failed+=("$pkg")
+        fi
+        ;;
+      vhs)
+        mkdir -p "$HOME/.local/bin"
+        if command -v go &>/dev/null && GOBIN="$HOME/.local/bin" go install "github.com/charmbracelet/vhs@v$VHS_VERSION"; then
           installed+=("$pkg")
         else
           failed+=("$pkg")

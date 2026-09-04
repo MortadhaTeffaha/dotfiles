@@ -47,6 +47,31 @@ Pi authentication, OAuth tokens, sessions, caches, trust decisions, and Herdr ru
 
 `refresh-models` lives in the internal `ddoghq-sandbox/datadog-pi-packages` monorepo. `setup.sh` idempotently clones or updates that repository at `~/dd/datadog-pi-packages`, matching the portable `../../dd/datadog-pi-packages/packages/refresh-models` entry in Pi settings. Datadog Workspaces runs this repository's `install.sh` automatically and configures per-org Git authentication first, so no credentials are committed to the dotfiles. Override the checkout or remote with `DATADOG_PI_PACKAGES_DIR` or `DATADOG_PI_PACKAGES_REPO` when needed.
 
+## Pi session orchestration
+
+Pi opens as a normal coding session by default. Session routing is opt-in through the explicit skill at `pi/.pi/agent/skills/work/SKILL.md`:
+
+```text
+/skill:work implement retry handling for the API client
+```
+
+The skill classifies that one request as documentation writing, documentation review, code development, code review, incident investigation, or general work. Before launching, it shows the selected profile, model, and objective for confirmation. Confirmed work opens as an interactive Pi subagent in a Herdr surface. Calling `/skill:work` without arguments asks for the work request first. Later prompts remain ordinary Pi requests unless the skill is invoked again.
+
+The role profiles live in `pi/.pi/agent/agents/`. Their model and thinking defaults are normal frontmatter and can be edited independently of the skill. Normal sessions use Pi's configured default, currently `ai-gw-openai/openai/gpt-5.6-sol` at medium thinking, while respecting explicit command-line or interactive model overrides.
+
+The code-development profile follows a gated hybrid lifecycle:
+
+1. Define the feature, its motivation, scope, non-goals, and acceptance criteria.
+2. Use an interactive planner for substantial changes.
+3. Keep one pane-resident implementation worker open for coding, validation fixes, and review fixes.
+4. Validate with reproducible commands and run code review.
+5. Generate unannotated VHS recordings and screenshots containing only real commands and real output.
+6. Invalidate and regenerate proof after any later implementation change.
+7. Obtain approval before pushing or creating a PR.
+8. Check CI, feedback, approvals, conflicts, evidence, proof revision, and repository policy before declaring merge readiness.
+
+The proof gate requires `vhs`, `ttyd`, and `ffmpeg`; `setup.sh` installs them on macOS. On Linux it installs a pinned VHS release into `~/.local/bin`, downloads a pinned checksum-verified `ttyd` binary for x86_64 or ARM64, and installs `ffmpeg` natively. Workflow handoffs and generated evidence are stored outside target repositories under `~/.pi/agent/workflows/<session-id>/`, preventing orchestration metadata and binary proof from polluting diffs or commits.
+
 ## Usage
 
 ```bash

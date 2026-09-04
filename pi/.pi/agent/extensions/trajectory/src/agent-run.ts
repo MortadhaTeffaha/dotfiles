@@ -15,6 +15,12 @@ type PiAssistantMessage = {
 	usage?: unknown;
 };
 
+export interface PiAgentRunRequest {
+	model?: string;
+	provider?: string;
+	usage: Record<string, unknown>;
+}
+
 function finiteNonNegative(value: unknown): number | undefined {
 	return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
 }
@@ -26,11 +32,11 @@ function nativeCostTotal(cost: unknown): number | undefined {
 }
 
 /**
- * Aggregate the provider requests in one Pi agent loop.
+ * Aggregate the provider requests in one settled Pi interaction.
  *
  * Pi's turn_end is request-grain: it fires after every assistant/tool step.
- * agent_end.messages is the native complete list for the outer agent run, so
- * it is the only lifecycle payload suitable for one Trajectory turn total.
+ * Each agent_end contains one low-level run, while retries and queued
+ * continuations can produce additional runs before agent_settled.
  */
 export function aggregatePiAgentRun(messages: unknown): PiAgentRunAggregate {
 	const result: PiAgentRunAggregate = {
@@ -39,8 +45,6 @@ export function aggregatePiAgentRun(messages: unknown): PiAgentRunAggregate {
 		modelStatus: "unavailable",
 		costStatus: "unavailable",
 	};
-	if (!Array.isArray(messages)) return result;
-
 	let input = 0;
 	let output = 0;
 	let cacheRead = 0;
@@ -51,14 +55,10 @@ export function aggregatePiAgentRun(messages: unknown): PiAgentRunAggregate {
 	const models = new Set<string>();
 	const providers = new Set<string>();
 
-	for (const candidate of messages as PiAssistantMessage[]) {
-		if (!candidate || candidate.role !== "assistant") continue;
-		if (typeof candidate.model === "string" && candidate.model) models.add(candidate.model);
-		if (typeof candidate.provider === "string" && candidate.provider) providers.add(candidate.provider);
-
-		const rawUsage = candidate.usage;
-		if (!rawUsage || typeof rawUsage !== "object" || Array.isArray(rawUsage)) continue;
-		const usage = rawUsage as Record<string, unknown>;
+	for (const candidate of summarizePiAgentRunRequests(messages)) {
+		if (candidate.model) models.add(candidate.model);
+		if (candidate.provider) providers.add(candidate.provider);
+		const usage = candidate.usage;
 		result.requestCount++;
 
 		const requestInput = finiteNonNegative(usage.input) ?? 0;
@@ -101,32 +101,58 @@ export function aggregatePiAgentRun(messages: unknown): PiAgentRunAggregate {
 	return result;
 }
 
+// summarizePiAgentRunRequests strips message content before handing request
+// evidence to Trajectory. The Go provider mapper owns canonical aggregation;
+// aggregatePiAgentRun remains as the backward-compatible payload for older
+// Trajectory binaries during rolling plugin refreshes.
+export function summarizePiAgentRunRequests(messages: unknown): PiAgentRunRequest[] {
+	if (!Array.isArray(messages)) return [];
+	const requests: PiAgentRunRequest[] = [];
+	for (const candidate of messages as PiAssistantMessage[]) {
+		if (!candidate || candidate.role !== "assistant") continue;
+		const rawUsage = candidate.usage;
+		if (!rawUsage || typeof rawUsage !== "object" || Array.isArray(rawUsage)) continue;
+		const sourceUsage = rawUsage as Record<string, unknown>;
+		const usage: Record<string, unknown> = {};
+		for (const key of ["input", "output", "cacheRead", "cacheWrite", "totalTokens", "reasoning", "reasoningOutput", "reasoningOutputTokens"]) {
+			const value = finiteNonNegative(sourceUsage[key]);
+			if (value !== undefined) usage[key] = value;
+		}
+		const cost = nativeCostTotal(sourceUsage.cost);
+		if (cost !== undefined) usage.cost = { total: cost };
+		const request: PiAgentRunRequest = { usage };
+		if (typeof candidate.model === "string" && candidate.model) request.model = candidate.model;
+		if (typeof candidate.provider === "string" && candidate.provider) request.provider = candidate.provider;
+		requests.push(request);
+	}
+	return requests;
+}
+
 /** Stable identity shared by the direct lifecycle write and HTTP POST. */
 export class PiAgentRunTracker {
 	private sessionId = "";
 	private epoch = 0;
 	private counter = 0;
 	private activeRunId = "";
-	private completedRunId = "";
 
 	reset(sessionId: string, epoch = Date.now()): void {
 		this.sessionId = sessionId;
 		this.epoch = epoch;
 		this.counter = 0;
 		this.activeRunId = "";
-		this.completedRunId = "";
 	}
 
 	start(): string {
+		if (this.activeRunId) return this.activeRunId;
 		this.counter++;
 		this.activeRunId = "pi-agent-run:" + this.sessionId + ":" + this.epoch + ":" + this.counter;
 		return this.activeRunId;
 	}
 
 	complete(): string | undefined {
-		if (!this.activeRunId) this.start();
-		if (this.activeRunId === this.completedRunId) return undefined;
-		this.completedRunId = this.activeRunId;
-		return this.activeRunId;
+		if (!this.activeRunId) return undefined;
+		const completed = this.activeRunId;
+		this.activeRunId = "";
+		return completed;
 	}
 }
