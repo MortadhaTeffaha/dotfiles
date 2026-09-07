@@ -1,4 +1,4 @@
-format = '${custom.git_worktree}$all'
+format = '$kubernetes${custom.git_worktree}$directory$git_branch$all'
 
 [custom.git_worktree]
 when = 'git rev-parse --git-dir 2>/dev/null | grep -q "worktrees"'
