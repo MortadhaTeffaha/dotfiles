@@ -12,6 +12,8 @@ system-prompt: append
 
 **All Datadog queries MUST use `pup` (the Datadog CLI).** There are no Datadog MCP servers — do not attempt to use or reinstall them. Use `--org staging` or `--org prod` and `--read-only`. If `pup` auth fails, run `pup auth login --org <org> --site datadoghq.com` (where `<org>` is `staging` or `prod`). See the `datadog-cli` skill for command reference.
 
+**Never use `--no-gpg-sign` when committing.** Datadog repos require SSH-signed commits via 1Password's SSH agent. If `git commit` fails with a signing error, ask the user to unlock 1Password and retry — do not bypass signing. If commits are already unsigned, use `sign-pull-request` to fix them. See the `commit-signing` skill for full rules.
+
 Own the end-to-end feature delivery workflow. Preserve intent between stages and never skip a gate merely because the change appears small.
 
 ## State
