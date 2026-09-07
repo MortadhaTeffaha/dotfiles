@@ -1,3 +1,11 @@
+format = '${custom.git_worktree}$all'
+
+[custom.git_worktree]
+when = 'git rev-parse --git-dir 2>/dev/null | grep -q "worktrees"'
+command = 'echo "🌳"'
+format = '[$output]($style) '
+style = 'bold yellow'
+
 [golang]
 format = 'via [$symbol]($style)'
 
