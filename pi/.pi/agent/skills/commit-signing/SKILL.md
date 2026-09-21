@@ -33,6 +33,28 @@ For `ddoghq` repos (e.g. `dd-source`), a conditional `includeIf` block swaps in 
 
 5. **Always let `commit.gpgSign = true` auto-sign**. Run `git commit` normally without any signing flags. The global config handles signing automatically when 1Password is unlocked.
 
+## Rebase rules — prevent editor hangs
+
+Git opens an interactive editor during `git rebase --continue`, `git commit --amend`, and interactive rebases. In a non-interactive agent session this causes a **permanent hang** waiting for editor input that never comes.
+
+**Always prefix git commands that may open an editor with `GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true`:**
+
+```bash
+# Rebase continue — accepts the existing commit message as-is
+GIT_EDITOR=true git rebase --continue
+
+# Amend without changing the message
+GIT_EDITOR=true git commit --amend --no-edit
+
+# Interactive rebase — accepts the default plan (all "pick")
+GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true git rebase -i HEAD~3
+```
+
+- `GIT_EDITOR=true` — git treats the editor as "succeeded" and keeps the existing/prepared commit message without opening anything.
+- `GIT_SEQUENCE_EDITOR=true` — same for the interactive rebase plan (the pick/reword/squash list).
+
+Never run `git rebase --continue` or `git rebase -i` without these variables. If a rebase appears to hang, it is almost certainly waiting for editor input — cancel it and retry with `GIT_EDITOR=true`.
+
 ## Quick reference
 
 | Situation | Action |
@@ -41,3 +63,6 @@ For `ddoghq` repos (e.g. `dd-source`), a conditional `includeIf` block swaps in 
 | `git commit` fails with signing error | Ask user to unlock 1Password, then retry the same command |
 | Commits already unsigned | Use `sign-pull-request` — never manual rebase re-signing |
 | Tempted to use `--no-gpg-sign` | Don't. Ask the user to unlock 1Password instead |
+| `git rebase --continue` | Always prefix with `GIT_EDITOR=true` |
+| `git rebase -i` | Always prefix with `GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true` |
+| Rebase appears to hang | Cancel and retry with `GIT_EDITOR=true` |

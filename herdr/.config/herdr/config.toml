@@ -71,6 +71,30 @@ type = "shell"
 command = "pane_id=$(herdr pane split --current --direction right --focus 2>&1 | jq -r '.result.pane.pane_id // empty'); test -n \"$pane_id\" && herdr pane run \"$pane_id\" ~/.config/herdr/plugins/github/annotate-9c299759567c/bin/plannotator-tui.exe /tmp/plans"
 description = "annotate: open /tmp/plans in plannotator-tui"
 
+[[keys.command]]
+key = "prefix+r"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "reviewr: toggle diff review pane"
+
+[[keys.command]]
+key = "prefix+shift+r"
+type = "plugin_action"
+command = "persiyanov.reviewr.open"
+description = "reviewr: open diff review pane"
+
+[[keys.command]]
+key = "prefix+s"
+type = "shell"
+command = "ws=$(herdr workspace create --focus 2>&1 | jq -r '.result.root_pane.pane_id // empty'); test -n \"$ws\" && herdr pane run \"$ws\" ~/.config/herdr/scripts/pi-session.sh"
+description = "new workspace + pi session with profile picker"
+
+[[keys.command]]
+key = "prefix+shift+g"
+type = "shell"
+command = "tab=$(herdr tab create --focus 2>&1 | jq -r '.result.root_pane.pane_id // empty'); test -n \"$tab\" && herdr pane run \"$tab\" ~/.config/herdr/scripts/pi-session.sh"
+description = "new tab + pi session with profile picker"
+
 [ui.sidebar.agents]
 rows = [["state_icon", "workspace", "$pr"], ["agent"]]
 
