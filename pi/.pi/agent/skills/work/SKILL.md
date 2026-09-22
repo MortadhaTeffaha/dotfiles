@@ -50,18 +50,22 @@ Use these named agents and their configured profile models:
    - a one-sentence objective.
 3. Offer `Launch session (Recommended)`, `Choose another type`, and `Cancel`.
 4. If the user chooses another type, ask them to select from the six types and confirm the revised route.
-5. Only after confirmation, call `subagent` with:
-   - the selected named agent;
-   - the original request and objective in `task`;
-   - the current working directory;
-   - `interactive: true` — the session MUST stay open after the initial task completes so the user can continue the conversation in its Herdr pane.
-6. If the invocation includes image attachments, set `fork: true` so the child inherits them. Otherwise set `fork: false` and use the explicit handoff.
-7. Tell the user which session launched and which Herdr pane it is running in. The session is interactive and stays open — the user works directly in that pane.
-8. **Do NOT wait for or expect a completion report.** Interactive sessions do not auto-exit, so the harness will not deliver a result back to this session. Do not poll, do not write wait loops, do not tail log files. Your routing job is done after launch — end your turn.
-9. If the user later asks how the session is doing, check its status using the `herdr` CLI (there is no Herdr MCP server — use bash commands directly):
-   - `herdr agent list` — lists all agents with their `agent_status` (`idle`, `working`, `blocked`, `done`). Match by the session name you gave the subagent.
+5. Only after confirmation, launch a persistent interactive Pi session using the `herdr` CLI directly (do NOT use the `subagent` tool — it auto-exits after task completion). Run these bash commands in sequence:
+   a. Create a new tab: `herdr tab create --workspace wA --label "<SessionName>" --cwd <cwd> --no-focus`
+      - Parse the pane ID from the command output.
+   b. Start an interactive Pi agent in the new tab: `herdr agent start "<SessionName>" --kind pi --pane <pane_id> --timeout 30000 -- --model <model> --agent <agent_name>`
+      - `--agent <agent_name>` loads the named agent's frontmatter (model, thinking level, system prompt).
+      - Wait for the agent to be ready (the command blocks until Pi is interactive).
+   c. Send the task prompt: `herdr agent prompt <pane_id> "<task text>" --wait --until idle --timeout 300000`
+      - This sends the request and waits for the agent to finish processing it.
+      - The agent stays interactive in the pane after completion — the user can continue the conversation there.
+6. If the invocation includes image attachments, note that the herdr CLI approach does not support image handoff. Fall back to the `subagent` tool with `fork: true` in that case (the session will auto-exit, but image context is preserved).
+7. Tell the user which session launched, the tab name, and the pane ID. The session is interactive and stays open — the user works directly in that pane.
+8. **Do NOT wait for or expect a completion report from the harness.** The session is launched via the herdr CLI, not the `subagent` tool, so no steer message will be delivered. Your routing job is done after launch — end your turn.
+9. If the user later asks how the session is doing, check its status using the `herdr` CLI:
+   - `herdr agent list` — lists all agents with their `agent_status` (`idle`, `working`, `blocked`, `done`). Match by the session name.
    - `herdr agent read <pane_id>` — reads the agent's terminal output to see what it did and found.
    - `herdr agent wait <pane_id> --until idle --timeout <ms>` — optionally wait for the agent to finish if it's still `working`.
    - Report the status and a summary of the output to the user. Do not just tell them to check the pane — actually fetch and relay the information.
 
-Do not perform the routed work in the current session. Do not silently launch. Do not override the named agent's model or thinking level in the `subagent` call. The launched session must NOT auto-exit after completing the initial task — it stays open for the user to continue interacting. If classification is genuinely ambiguous, ask one short clarification question before presenting confirmation.
+Do not perform the routed work in the current session. Do not silently launch. Do not override the named agent's model or thinking level. The launched session must NOT auto-exit after completing the initial task — it stays open for the user to continue interacting. If classification is genuinely ambiguous, ask one short clarification question before presenting confirmation.
