@@ -33,12 +33,12 @@ Use these named agents and their configured profile models:
 
 | Session type | Agent | Model |
 |---|---|---|
-| doc-writing | `doc-writer` | `ai-gw-anthropic-200k/anthropic/claude-sonnet-5` |
-| doc-review | `doc-reviewer` | `ai-gw-anthropic-200k/anthropic/claude-sonnet-5` |
-| code-development | `code-development` | `ai-gw-openai/openai/gpt-5.6-sol` |
-| code-review | `code-review` | `ai-gw-anthropic-200k/anthropic/claude-sonnet-5` |
-| incident-investigation | `incident-investigator` | `ai-gw-anthropic-200k/anthropic/claude-sonnet-5` |
-| general | `general-session` | `ai-gw-openai/openai/gpt-5.6-sol` |
+| doc-writing | `doc-writer` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| doc-review | `doc-reviewer` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| code-development | `code-development` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| code-review | `code-review` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| incident-investigation | `incident-investigator` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| general | `general-session` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
 
 ## Routing protocol
 
