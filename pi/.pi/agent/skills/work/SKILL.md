@@ -52,13 +52,15 @@ Use these named agents and their configured profile models:
 4. If the user chooses another type, ask them to select from the six types and confirm the revised route.
 5. Only after confirmation, launch a persistent interactive Pi session using the `herdr` CLI directly (do NOT use the `subagent` tool — it auto-exits after task completion). Run these bash commands in sequence:
    a. Create a new tab: `herdr tab create --workspace wA --label "<SessionName>" --cwd <cwd> --no-focus`
-      - Parse the pane ID from the command output.
-   b. Start an interactive Pi agent in the new tab: `herdr agent start "<SessionName>" --kind pi --pane <pane_id> --timeout 30000 -- --model <model> --agent <agent_name>`
-      - `--agent <agent_name>` loads the named agent's frontmatter (model, thinking level, system prompt).
-      - Wait for the agent to be ready (the command blocks until Pi is interactive).
-   c. Send the task prompt: `herdr agent prompt <pane_id> "<task text>" --wait --until idle --timeout 300000`
+      - Parse the `pane_id` from the JSON `result.root_pane.pane_id` field in the command output.
+   b. Start an interactive Pi agent in the new pane: `herdr agent start "<session-name>" --kind pi --pane <pane_id> --timeout 30000 -- --model <model> --thinking high --name "<SessionName>"`
+      - The agent name passed to `herdr agent start` must be lowercase with only letters, digits, hyphens, or underscores (max 32 chars).
+      - Pi does NOT have an `--agent` flag. Pass `--model`, `--thinking`, and `--name` directly as pi CLI arguments after `--`.
+      - The command blocks until Pi is interactive and ready for input.
+   c. Send the task prompt: `herdr agent prompt <pane_id> "<task text>" --wait --until idle --timeout 120000`
       - This sends the request and waits for the agent to finish processing it.
       - The agent stays interactive in the pane after completion — the user can continue the conversation there.
+      - If the prompt times out, check the agent status with `herdr agent list` — it may have already completed (status `done` or `idle`).
 6. If the invocation includes image attachments, note that the herdr CLI approach does not support image handoff. Fall back to the `subagent` tool with `fork: true` in that case (the session will auto-exit, but image context is preserved).
 7. Tell the user which session launched, the tab name, and the pane ID. The session is interactive and stays open — the user works directly in that pane.
 8. **Do NOT wait for or expect a completion report from the harness.** The session is launched via the herdr CLI, not the `subagent` tool, so no steer message will be delivered. Your routing job is done after launch — end your turn.
