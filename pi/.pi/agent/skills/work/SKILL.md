@@ -58,6 +58,10 @@ Use these named agents and their configured profile models:
 6. If the invocation includes image attachments, set `fork: true` so the child inherits them. Otherwise set `fork: false` and use the explicit handoff.
 7. Tell the user which session launched and which Herdr pane it is running in. The session is interactive and stays open — the user works directly in that pane.
 8. **Do NOT wait for or expect a completion report.** Interactive sessions do not auto-exit, so the harness will not deliver a result back to this session. Do not poll, do not write wait loops, do not tail log files. Your routing job is done after launch — end your turn.
-9. If the user later asks how the session is doing, tell them to check the Herdr pane directly. Do not attempt to programmatically poll the subagent's status.
+9. If the user later asks how the session is doing, check its status using the `herdr` CLI (there is no Herdr MCP server — use bash commands directly):
+   - `herdr agent list` — lists all agents with their `agent_status` (`idle`, `working`, `blocked`, `done`). Match by the session name you gave the subagent.
+   - `herdr agent read <pane_id>` — reads the agent's terminal output to see what it did and found.
+   - `herdr agent wait <pane_id> --until idle --timeout <ms>` — optionally wait for the agent to finish if it's still `working`.
+   - Report the status and a summary of the output to the user. Do not just tell them to check the pane — actually fetch and relay the information.
 
 Do not perform the routed work in the current session. Do not silently launch. Do not override the named agent's model or thinking level in the `subagent` call. The launched session must NOT auto-exit after completing the initial task — it stays open for the user to continue interacting. If classification is genuinely ambiguous, ask one short clarification question before presenting confirmation.
