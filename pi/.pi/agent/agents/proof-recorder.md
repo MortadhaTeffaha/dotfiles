@@ -6,6 +6,7 @@ thinking: high
 tools: read, bash, write, edit
 spawning: false
 interactive: true
+auto-exit: false
 disable-model-invocation: true
 system-prompt: append
 ---

@@ -5,6 +5,7 @@ model: ai-gw-baseten/baseten/zai-org/GLM-5.2
 thinking: high
 spawning: false
 interactive: true
+auto-exit: false
 disable-model-invocation: true
 system-prompt: append
 ---
