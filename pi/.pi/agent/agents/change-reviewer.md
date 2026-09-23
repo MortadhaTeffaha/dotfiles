@@ -1,6 +1,6 @@
 ---
 name: change-reviewer
-description: Autonomous implementation review gate used by the code-development workflow.
+description: Autonomous implementation review gate used by the coder workflow.
 model: ai-gw-baseten/baseten/zai-org/GLM-5.2
 thinking: high
 spawning: false

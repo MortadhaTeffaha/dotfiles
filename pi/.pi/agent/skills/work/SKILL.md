@@ -22,23 +22,17 @@ If no request was supplied, ask the user what they want to work on before classi
 
 Classify the primary desired outcome into exactly one type:
 
-1. `doc-writing` — draft or substantially rewrite documentation, proposals, runbooks, design documents, or explanations.
-2. `doc-review` — review an existing document for correctness, clarity, structure, omissions, or readiness.
-3. `code-development` — implement or change code, configuration, infrastructure, tests, or developer tooling.
-4. `code-review` — review an existing diff, branch, commit, or pull request without owning implementation.
-5. `incident-investigation` — diagnose an operational problem, outage, regression, alert, or unexplained production behavior.
-6. `general` — learning, research, one-off operations, or work outside the specialized flows above.
+1. `writer` — draft, revise, or review documentation, proposals, runbooks, design documents, or explanations.
+2. `coder` — implement or change code, configuration, infrastructure, tests, developer tooling, or review an existing diff, branch, commit, or pull request.
+3. `generalist` — learning, research, one-off operations, or work outside the specialized writer and coder flows. Uses the default profile model.
 
 Use these named agents and their configured profile models:
 
 | Session type | Agent | Model |
 |---|---|---|
-| doc-writing | `doc-writer` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
-| doc-review | `doc-reviewer` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
-| code-development | `code-development` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
-| code-review | `code-review` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
-| incident-investigation | `incident-investigator` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
-| general | `general-session` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| writer | `writer` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| coder | `coder` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| generalist | `generalist` | *(default profile — no explicit model override)* |
 
 ## Routing protocol
 
@@ -46,16 +40,17 @@ Use these named agents and their configured profile models:
 2. Before launching, call `ask_user_question` and show:
    - selected session type;
    - selected named agent;
-   - configured model;
+   - configured model (or "default profile" for generalist);
    - a one-sentence objective.
 3. Offer `Launch session (Recommended)`, `Choose another type`, and `Cancel`.
-4. If the user chooses another type, ask them to select from the six types and confirm the revised route.
+4. If the user chooses another type, ask them to select from the three types and confirm the revised route.
 5. Only after confirmation, launch a persistent interactive Pi session using the `herdr` CLI directly (do NOT use the `subagent` tool — it auto-exits after task completion). Run these bash commands in sequence:
    a. Create a new tab: `herdr tab create --workspace wA --label "<SessionName>" --cwd <cwd> --no-focus`
       - Parse the `pane_id` from the JSON `result.root_pane.pane_id` field in the command output.
    b. Start an interactive Pi agent in the new pane: `herdr agent start "<session-name>" --kind pi --pane <pane_id> --timeout 30000 -- --model <model> --thinking high --name "<SessionName>"`
       - The agent name passed to `herdr agent start` must be lowercase with only letters, digits, hyphens, or underscores (max 32 chars).
       - Pi does NOT have an `--agent` flag. Pass `--model`, `--thinking`, and `--name` directly as pi CLI arguments after `--`.
+      - For the `generalist` session, omit `--model` so Pi uses the default profile model.
       - The command blocks until Pi is interactive and ready for input.
    c. Send the task prompt: `herdr agent prompt <pane_id> "<task text>" --wait --until idle --timeout 120000`
       - This sends the request and waits for the agent to finish processing it.
