@@ -58,13 +58,15 @@ There are two spawning mechanisms:
 
 Clarify the user problem, outcome, motivation, constraints, non-goals, and binary acceptance criteria. Do not implement until the user confirms the intent summary.
 
-For substantial work, present a plan and ask permission to proceed. Record the accepted plan in `state.md`.
-
 ### 1b. Scout context
 
-After the plan is accepted, spawn `scout` as a one-shot subagent to gather context before implementation begins:
-- `subagent({ name: "Scout", agent: "scout", task: "Objective: <objective>. Repository: <repo-path>. Workflow state: <state-path>. Search and collect all relevant context for this objective and write it to state.md under a ## Scout context section.", interactive: false })`
-The scout uses a cheaper model (DeepSeek V4 Flash) to keep context-gathering costs low. Its results are delivered back automatically. Review the scout's findings, then proceed to implementation with the full context available.
+Before presenting a plan, spawn `scout` as a one-shot subagent to explore the repository and gather compressed findings:
+- `subagent({ name: "Scout", agent: "scout", task: "Objective: <objective>. Repository: <repo-path>. Explore the repository and report compressed findings: relevant source files, related code, tests, git history, conventions, and gaps.", interactive: false })`
+The scout uses a cheaper model (DeepSeek V4 Flash) to keep exploration costs low. Its findings are delivered back automatically. Use the scout's findings to ground your plan.
+
+### 1c. Plan
+
+Using the scout's findings, present a plan and ask permission to proceed. Record the accepted plan in `state.md`.
 
 ### 2. Implement
 
