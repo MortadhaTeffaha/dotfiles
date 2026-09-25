@@ -59,12 +59,3 @@ pup auth login --org <org> --site datadoghq.com  # Re-authenticate via browser
 ```
 
 The `pup` wrapper at `~/.pi/agent/bin/pup` prints an org banner during `auth login` so you know which org to authorize.
-
-## Web Search: Never open browser, never generate summaries
-
-When calling the `web_search` tool, **always pass `workflow: "none"`**. Never use `workflow: "summary-review"` or `workflow: "auto-summary"`.
-
-- `workflow: "none"` returns raw search results directly in the conversation — no browser window, no summary generation.
-- The user does NOT want a Chrome window opening during web searches.
-- The user does NOT want AI-generated summaries of search results.
-- Just return the raw search results with citations.

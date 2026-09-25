@@ -4,7 +4,6 @@
   "defaultThinkingLevel": "high",
   "packages": [
     "npm:context-mode",
-    "npm:pi-web-access",
     "npm:pi-mcp-adapter",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:pi-markdown-preview",
@@ -12,7 +11,8 @@
     "../../dd/datadog-pi-packages/packages/refresh-models",
     "npm:pi-herdr-subagents",
     "npm:@plannotator/pi-extension",
-    "npm:pi-session-auto-rename"
+    "npm:pi-session-auto-rename",
+    "npm:@zeldrisho/pi-web-fetch"
   ],
   "theme": "dark",
   "powerline": {
