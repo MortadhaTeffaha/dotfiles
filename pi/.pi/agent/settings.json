@@ -41,5 +41,6 @@
       }
     }
   },
+  "defaultProjectTrust": "always",
   "lastChangelogVersion": "0.84.4"
 }
