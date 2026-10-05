@@ -428,7 +428,7 @@ if command -v herdr &>/dev/null; then
       echo "Herdr plugin already installed: $plugin_id"
     else
       echo "Installing Herdr plugin: $plugin_id"
-      herdr plugin install "$source" --ref "$ref" --yes
+      herdr plugin install "$source" --ref "$ref" --yes || echo "Warning: failed to install Herdr plugin $plugin_id; continuing." >&2
     fi
   done
 fi
