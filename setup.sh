@@ -10,6 +10,10 @@ UNAME_SYSTEM="unknown"
 UNAME_MACHINE="unknown"
 VHS_VERSION="0.11.0"
 TTYD_VERSION="1.7.7"
+ATUIN_VERSION="18.23.0"
+K9S_VERSION="0.32.7"
+LAZYGIT_VERSION="0.45.2"
+STARSHIP_VERSION="1.23.0"
 
 if ! command -v uname &>/dev/null; then
   echo "Error: uname is required to detect the operating system." >&2
@@ -186,11 +190,9 @@ if [[ "$PLATFORM" == "linux" ]]; then
         [fzf]="fzf"
         [go]="golang-go"
         [kubectl]="kubectl"
-        [lazygit]="lazygit"
         [neovim]="neovim"
         [pyenv]="pyenv"
         [rbenv]="rbenv"
-        [starship]="starship"
         [stow]="stow"
         [tmux]="tmux"
         [ttyd]="ttyd"
@@ -321,6 +323,71 @@ for pkg in "${PACKAGES[@]}"; do
         ;;
       herdr)
         if curl -fsSL https://herdr.dev/install.sh | sh; then
+          installed+=("$pkg")
+        else
+          failed+=("$pkg")
+        fi
+        ;;
+      atuin)
+        # atuin is not in Ubuntu 22.04 apt; install the musl build from GitHub.
+        # The gnu build requires GLIBC 2.39 (Ubuntu 22.04 has 2.35); musl is statically linked.
+        case "$UNAME_MACHINE" in
+          x86_64|amd64) atuin_arch="x86_64-unknown-linux-gnu" ;;
+          arm64|aarch64) atuin_arch="aarch64-unknown-linux-musl" ;;
+          *) atuin_arch="" ;;
+        esac
+        mkdir -p "$HOME/.local/bin"
+        atuin_tmp="$(mktemp -d)"
+        atuin_url="https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin-${atuin_arch}.tar.gz"
+        if [[ -n "$atuin_arch" ]] && curl -fL "$atuin_url" | tar xz -C "$atuin_tmp" 2>/dev/null; then
+          # tar extracts to a subdirectory named atuin-<arch>
+          cp "$atuin_tmp/atuin-${atuin_arch}/atuin" "$HOME/.local/bin/atuin"
+          chmod 0755 "$HOME/.local/bin/atuin"
+          installed+=("$pkg")
+        else
+          failed+=("$pkg")
+        fi
+        rm -rf "$atuin_tmp"
+        ;;
+      k9s)
+        case "$UNAME_MACHINE" in
+          x86_64|amd64) k9s_arch="amd64" ;;
+          arm64|aarch64) k9s_arch="arm64" ;;
+          *) k9s_arch="" ;;
+        esac
+        mkdir -p "$HOME/.local/bin"
+        k9s_tmp="$(mktemp)"
+        k9s_url="https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${k9s_arch}.tar.gz"
+        if [[ -n "$k9s_arch" ]] && curl -fL "$k9s_url" -o "$k9s_tmp" && tar xzf "$k9s_tmp" -C "$HOME/.local/bin" k9s 2>/dev/null; then
+          chmod 0755 "$HOME/.local/bin/k9s"
+          installed+=("$pkg")
+        else
+          failed+=("$pkg")
+        fi
+        rm -f "$k9s_tmp"
+        ;;
+      lazygit)
+        case "$UNAME_MACHINE" in
+          x86_64|amd64) lg_arch="x86_64" ;;
+          arm64|aarch64) lg_arch="arm64" ;;
+          *) lg_arch="" ;;
+        esac
+        mkdir -p "$HOME/.local/bin"
+        lg_tmp="$(mktemp -d)"
+        lg_url="https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${lg_arch}.tar.gz"
+        if [[ -n "$lg_arch" ]] && curl -fL "$lg_url" | tar xz -C "$lg_tmp" 2>/dev/null; then
+          cp "$lg_tmp/lazygit" "$HOME/.local/bin/lazygit"
+          chmod 0755 "$HOME/.local/bin/lazygit"
+          installed+=("$pkg")
+        else
+          failed+=("$pkg")
+        fi
+        rm -rf "$lg_tmp"
+        ;;
+      starship)
+        # starship's official install script handles arch detection and download.
+        mkdir -p "$HOME/.local/bin"
+        if curl -fsSL https://starship.rs/install.sh | sh -s -- --yes --bin-dir "$HOME/.local/bin" 2>/dev/null; then
           installed+=("$pkg")
         else
           failed+=("$pkg")
