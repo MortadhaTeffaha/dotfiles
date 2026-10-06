@@ -143,7 +143,60 @@ ws_create_and_attach() {
   workspaces ssh-config "$name" 2>&1 | grep -v "^$" || true
   ws_ok "SSH config ready (host: ${ssh_host})."
 
-  # Step 4: Ensure herdr is installed on the workspace
+  # Step 4: Authenticate ddtool (needed for /refresh-models and AI Gateway)
+  ws_log "Checking ddtool authentication…"
+  local ddtool_ok
+  ddtool_ok=$(ssh -o ConnectTimeout=15 -o ServerAliveInterval=10 "$ssh_host" \
+    'timeout 8 ddtool auth token rapid-ai-platform --datacenter us1.ddbuild.io >/dev/null 2>&1 && echo ok' 2>/dev/null || true)
+  if [[ "$ddtool_ok" == "ok" ]]; then
+    ws_ok "ddtool already authenticated."
+  else
+    ws_log "ddtool needs authentication. Starting device flow…"
+    # Start device login in background, capture the URL + code
+    ssh -o ConnectTimeout=15 -o ServerAliveInterval=5 "$ssh_host" \
+      'nohup ddtool auth login --mode device --datacenter us1.ddbuild.io > /tmp/ddtool-auth.log 2>&1 & sleep 5; cat /tmp/ddtool-auth.log' 2>&1 | grep -v "^nc:" || true
+    # Extract the URL and code from the output
+    local auth_url auth_code
+    auth_url=$(ssh -o ConnectTimeout=10 "$ssh_host" 'grep -o "https://[a-z./]*" /tmp/ddtool-auth.log | head -1' 2>/dev/null || true)
+    auth_code=$(ssh -o ConnectTimeout=10 "$ssh_host" 'grep -o "[A-Z0-9]*-[A-Z0-9]*-[A-Z0-9]*" /tmp/ddtool-auth.log | head -1' 2>/dev/null || true)
+    echo ""
+    echo "  ┌─────────────────────────────────────────────────────────┐"
+    echo "  │  ddtool authentication required                         │"
+    echo "  │                                                         │"
+    if [[ -n "$auth_url" ]]; then
+      echo "  │  Open this URL in your browser:                         │"
+      echo "  │    ${auth_url}"
+    else
+      echo "  │  Open https://www.google.com/device in your browser     │"
+    fi
+    if [[ -n "$auth_code" ]]; then
+      echo "  │  Enter code: ${auth_code}"
+    fi
+    echo "  │                                                         │"
+    echo "  │  Waiting for authentication to complete…                │"
+    echo "  └─────────────────────────────────────────────────────────┘"
+    echo ""
+    # Wait for the background login to complete (up to 2 minutes)
+    local auth_waited=0
+    while [[ $auth_waited -lt 120 ]]; do
+      sleep 3
+      auth_waited=$((auth_waited + 3))
+      ddtool_ok=$(ssh -o ConnectTimeout=10 "$ssh_host" \
+        'timeout 5 ddtool auth token rapid-ai-platform --datacenter us1.ddbuild.io >/dev/null 2>&1 && echo ok' 2>/dev/null || true)
+      if [[ "$ddtool_ok" == "ok" ]]; then
+        ws_ok "ddtool authenticated."
+        break
+      fi
+      if [[ $((auth_waited % 15)) -eq 0 ]]; then
+        ws_log "Still waiting for authentication… (${auth_waited}s)"
+      fi
+    done
+    if [[ "$ddtool_ok" != "ok" ]]; then
+      ws_err "ddtool authentication timed out. Run 'ssh ${ssh_host} ddtool auth login --mode device' manually."
+    fi
+  fi
+
+  # Step 5: Ensure herdr is installed on the workspace
   ws_log "Checking herdr on workspace…"
   if ! ssh -o ConnectTimeout=15 -o ServerAliveInterval=10 "$ssh_host" 'command -v herdr &>/dev/null' 2>/dev/null; then
     ws_log "Installing herdr on workspace…"
@@ -154,20 +207,20 @@ ws_create_and_attach() {
     ws_ok "herdr already installed on workspace."
   fi
 
-  # Step 5: Update herdr on the workspace to match local version
+  # Step 6: Update herdr on the workspace to match local version
   local local_version
   local_version=$(herdr --version 2>/dev/null | awk '{print $2}')
   ws_log "Local herdr version: ${local_version}"
   ssh -o ConnectTimeout=15 -o ServerAliveInterval=10 "$ssh_host" \
     "remote_ver=\$(herdr --version 2>/dev/null | awk '{print \$2}'); echo \"Remote herdr version: \$remote_ver\"" 2>&1 | grep -v "^nc:" || true
 
-  # Step 6: Stop any running herdr server on the workspace (machine add needs a fresh start)
+  # Step 7: Stop any running herdr server on the workspace (machine add needs a fresh start)
   ws_log "Stopping any existing herdr server on workspace…"
   ssh -o ConnectTimeout=15 -o ServerAliveInterval=10 "$ssh_host" \
     'herdr server stop 2>/dev/null; true' 2>&1 | grep -v "^nc:" || true
   sleep 1
 
-  # Step 7: Check if machine is already saved
+  # Step 8: Check if machine is already saved
   local existing_machine
   existing_machine=$(herdr machine list --json 2>/dev/null | python3 -c "
 import sys, json
@@ -196,17 +249,18 @@ except: pass
     ws_ok "Herdr machine '${machine_label}' saved."
   fi
 
-  # Step 9: Sync dotfiles to the workspace
+  # Step 10: Sync dotfiles to the workspace
   ws_log "Syncing dotfiles to workspace…"
   workspaces dotfiles sync "$name" 2>&1 || ws_err "Dotfiles sync failed (may need to run 'workspaces dotfiles migrate' first)."
 
-  # Step 10: Done
+  # Step 11: Done
   echo ""
   ws_ok "Workspace '${name}' is ready!"
   echo ""
   echo "  SSH:      ssh ${ssh_host}"
   echo "  Herdr:    Open 'herdr' and click '${machine_label}' in the sidebar"
   echo "  Dotfiles: workspaces dotfiles sync ${name}"
+  echo "  Models:   Run /refresh-models in Pi (ddtool is pre-authenticated)"
   echo ""
 }
 
