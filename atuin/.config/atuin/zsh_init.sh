@@ -27,6 +27,22 @@ fi
 export ATUIN_SESSION=$(atuin uuid)
 ATUIN_HISTORY_ID=""
 
+# Pre-warm SQLite page cache and periodically refresh query planner stats.
+# Runs ANALYZE at most once per day to keep the query planner fresh as the
+# history DB grows.  This prevents the up-arrow search TUI from becoming
+# slow (stale stats cause full-table scans instead of index lookups).
+_atuin_maybe_analyze() {
+  local stamp="${ATUIN_DATA_DIR:-$HOME/.local/share/atuin}/.last_analyze"
+  local now=$(date +%s)
+  local last=0
+  [[ -f "$stamp" ]] && last=$(cat "$stamp" 2>/dev/null || echo 0)
+  if (( now - last >= 86400 )); then  # 24 hours
+    ( sqlite3 "${ATUIN_DB_PATH:-$HOME/.history.db}" 'ANALYZE;' >/dev/null 2>&1 & )
+    echo "$now" > "$stamp" 2>/dev/null
+  fi
+}
+_atuin_maybe_analyze
+
 _atuin_preexec() {
     local id
     id=$(atuin history start -- "$1")
