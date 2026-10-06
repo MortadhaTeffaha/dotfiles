@@ -265,4 +265,13 @@ main() {
   esac
 }
 
-main "$@"
+# When sourced (by .zshrc), define `ws` as a function and stay silent.
+# When executed directly, run main with the given arguments.
+# ZSH_EVAL_CONTEXT contains "file" when sourced, and is "toplevel" or unset when executed.
+if [[ "${ZSH_EVAL_CONTEXT:-}" == *file ]]; then
+  # Script is being sourced — define `ws` as a shell function
+  ws() { main "$@"; }
+else
+  # Script is being executed directly
+  main "$@"
+fi
