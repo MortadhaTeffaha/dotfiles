@@ -123,16 +123,16 @@ ws_create_and_attach() {
     local max_wait=300  # 5 minutes
     local waited=0
     while [[ $waited -lt $max_wait ]]; do
-      local status
-      status=$(workspaces list 2>/dev/null | awk -v n="$name" '$1==n{print $3}' || true)
-      if [[ "$status" == "PROVISIONED" || "$status" == "RUNNING" ]]; then
-        ws_ok "Workspace provisioned (status: $status)."
+      local ws_status
+      ws_status=$(workspaces list 2>/dev/null | awk -v n="$name" '$1==n{print $3}' || true)
+      if [[ "$ws_status" == "PROVISIONED" || "$ws_status" == "RUNNING" ]]; then
+        ws_ok "Workspace provisioned (status: $ws_status)."
         break
       fi
       sleep 5
       waited=$((waited + 5))
       if [[ $((waited % 30)) -eq 0 ]]; then
-        ws_log "Still waiting… (${waited}s elapsed, status: ${status:-unknown})"
+        ws_log "Still waiting… (${waited}s elapsed, status: ${ws_status:-unknown})"
       fi
     done
     [[ $waited -ge $max_wait ]] && ws_die "Workspace provisioning timed out after ${max_wait}s."
