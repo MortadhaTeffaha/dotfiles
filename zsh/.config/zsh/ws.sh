@@ -217,7 +217,12 @@ ws_create_and_attach() {
   # Step 7: Stop any running herdr server on the workspace (machine add needs a fresh start)
   ws_log "Stopping any existing herdr server on workspace…"
   ssh -o ConnectTimeout=15 -o ServerAliveInterval=10 "$ssh_host" \
-    'herdr server stop 2>/dev/null; true' 2>&1 | grep -v "^nc:" || true
+    'export PATH="$HOME/.local/bin:$PATH"; herdr server stop 2>/dev/null; true' 2>&1 | grep -v "^nc:" || true
+  sleep 1
+
+  # Step 7b: Kill stale SSH connections from the mirror plugin to old/deleted workspaces
+  ws_log "Cleaning up stale SSH connections…"
+  pkill -f 'ssh.*-M.*workspace-' 2>/dev/null || true
   sleep 1
 
   # Step 8: Check if machine is already saved
@@ -248,6 +253,16 @@ except: pass
       ws_die "Failed to add Herdr machine."
     ws_ok "Herdr machine '${machine_label}' saved."
   fi
+
+  # Step 9b: Restart the local herdr server so it picks up the new machine connection
+  ws_log "Restarting local herdr server…"
+  herdr server stop 2>/dev/null || true
+  sleep 1
+  # Start in background — the server needs to run in the user's session to access
+  # the 1Password SSH agent socket for key signing.
+  nohup herdr server >/dev/null 2>&1 &
+  sleep 2
+  ws_ok "Local herdr server restarted."
 
   # Step 10: Sync dotfiles to the workspace
   ws_log "Syncing dotfiles to workspace…"
