@@ -500,6 +500,40 @@ if command -v herdr &>/dev/null; then
   done
 fi
 
+# Patch Pi MCP adapter to suppress console output that overlaps the TUI
+# during OAuth flows on headless workspaces.
+# 1. Replace bundled xdg-open with a no-op (prevents browser-not-found errors)
+# 2. Comment out console.log/error/warn in mcp-auth-flow.js and lifecycle.js
+if [[ -d "$HOME/.pi/agent/npm/node_modules/open" ]]; then
+  printf '#!/bin/sh\nexit 0\n' > "$HOME/.pi/agent/npm/node_modules/open/xdg-open"
+  chmod +x "$HOME/.pi/agent/npm/node_modules/open/xdg-open"
+fi
+MCP_FLOW="$HOME/.pi/agent/npm/node_modules/pi-mcp-adapter/dist/mcp-auth-flow.js"
+if [[ -f "$MCP_FLOW" ]]; then
+  sed -i 's/console\.log(`MCP Auth: Open this URL/console.log(`MCP Auth: Open this URL/' "$MCP_FLOW" 2>/dev/null || true
+  # Use python for reliable multi-pattern suppression
+  python3 -c "
+import re
+path = '$MCP_FLOW'
+with open(path) as f: lines = f.readlines()
+for i, line in enumerate(lines):
+    if 'console.' in line and 'MCP Auth:' in line:
+        lines[i] = '// ' + line if not line.strip().startswith('//') else line
+with open(path, 'w') as f: f.writelines(lines)
+" 2>/dev/null || true
+fi
+LIFECYCLE="$HOME/.pi/agent/npm/node_modules/pi-mcp-adapter/dist/lifecycle.js"
+if [[ -f "$LIFECYCLE" ]]; then
+  python3 -c "
+path = '$LIFECYCLE'
+with open(path) as f: lines = f.readlines()
+for i, line in enumerate(lines):
+    if 'console.error' in line and 'MCP:' in line:
+        lines[i] = '// ' + line if not line.strip().startswith('//') else line
+with open(path, 'w') as f: f.writelines(lines)
+" 2>/dev/null || true
+fi
+
 echo ""
 echo "=== Summary ==="
 [[ ${#skipped[@]} -gt 0 ]] && echo "Already installed: ${skipped[*]}"
