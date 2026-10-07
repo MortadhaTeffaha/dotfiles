@@ -46,7 +46,9 @@ export PATH="$PATH:$HOME/.local/bin"
 # on headless Linux; Pi uses AES-256-GCM files keyed by PI_MCP_ADAPTER_OAUTH_FILE_KEY).
 if [[ -n "${WORKSPACES_DAEMON_SOCKET:-}" ]]; then
   export DDTOOL_AUTH_LOGIN_MODE="device"
-  unset BROWSER
+  # 'echo' makes the `open` npm package silently succeed instead of trying
+  # xdg-open (which fails noisily on headless workspaces and overlaps the TUI).
+  export BROWSER="echo"
 
   # Generate a per-workspace encryption key for Pi MCP OAuth credential files.
   # The key is stored in ~/.pi/agent/.oauth-key (not synced, not in dotfiles).
