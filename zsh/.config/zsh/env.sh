@@ -6,6 +6,15 @@ fi
 
 export XDG_CONFIG_HOME=~/.config
 
+# Editor (nvim with vim fallback)
+if command -v nvim &>/dev/null; then
+  export EDITOR=nvim
+  export VISUAL=nvim
+elif command -v vim &>/dev/null; then
+  export EDITOR=vim
+  export VISUAL=vim
+fi
+
 # Homebrew security
 export HOMEBREW_NO_INSECURE_REDIRECT=1
 export HOMEBREW_CASK_OPTS=--require-sha
