@@ -28,3 +28,12 @@ export MANPAGER="sh -c 'col -bx | bat --theme=\"Catppuccin Mocha\" -l man -p'"
 
 # pipx
 export PATH="$PATH:$HOME/.local/bin"
+
+# On Datadog workspaces, force ddtool to use device-flow auth (no browser).
+# The workspace image sets DDTOOL_AUTH_LOGIN_MODE=auth-code which tries to
+# open a browser via xdg-open — useless on a headless workspace. Device flow
+# prints a URL + code the user enters on their local machine instead.
+if [[ -n "${WORKSPACES_DAEMON_SOCKET:-}" ]]; then
+  export DDTOOL_AUTH_LOGIN_MODE="device"
+  unset BROWSER
+fi
