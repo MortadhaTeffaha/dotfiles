@@ -2,7 +2,7 @@
 # caffeinate -w $$ exits automatically when this shell process dies, so
 # closing the terminal tab lets the Mac sleep normally.
 if [[ "$(uname -s)" == "Darwin" ]] && [[ -o interactive ]] && command -v caffeinate &>/dev/null; then
-  caffeinate -i -w $$ &>/dev/null &
+  caffeinate -is -w $$ &>/dev/null &
 fi
 
 # Homebrew (must be first — other tools depend on brew PATH)
