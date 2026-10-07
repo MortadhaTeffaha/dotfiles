@@ -1,10 +1,3 @@
-# Prevent idle sleep while an interactive shell is open (macOS only).
-# caffeinate -w $$ exits automatically when this shell process dies, so
-# closing the terminal tab lets the Mac sleep normally.
-if [[ "$(uname -s)" == "Darwin" ]] && [[ -o interactive ]] && command -v caffeinate &>/dev/null; then
-  caffeinate -is -w $$ &>/dev/null &
-fi
-
 # Homebrew (must be first — other tools depend on brew PATH)
 # Login shells initialize this in .zprofile; inherited shells should not repeat it.
 if [[ -z "${HOMEBREW_PREFIX:-}" ]]; then

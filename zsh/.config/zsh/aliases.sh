@@ -33,3 +33,14 @@ newFeatureBranch() {
   git checkout -b $(id -un)/$1
 }
 alias nfb=newFeatureBranch
+
+# Sleep control — prevents ALL sleep (idle, lid-close, explicit) so Pi sessions
+# and SSH connections stay alive. `nosleep` enables, `sleep` restores default.
+nosleep() {
+  sudo pmset -a disablesleep 1
+  echo "✓ Sleep disabled — Mac will not sleep. Run 'cansleep' to re-enable."
+}
+cansleep() {
+  sudo pmset -a disablesleep 0
+  echo "✓ Sleep re-enabled — Mac can sleep normally."
+}
