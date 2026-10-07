@@ -4,7 +4,8 @@
     "claude-desktop"
   ],
   "settings": {
-    "autoAuth": true
+    "autoAuth": true,
+    "oauthCredentialStore": "encrypted-file"
   },
   "mcpServers": {
     "datadog-google-workspace": {
