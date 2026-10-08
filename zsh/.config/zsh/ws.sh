@@ -15,8 +15,6 @@
 # After creation, the workspace appears as a space in your local Herdr sidebar.
 # Run `herdr` to open the UI and click the workspace in the sidebar to connect.
 
-set -euo pipefail
-
 # --- helpers -----------------------------------------------------------------
 
 ws_log()  { echo "▸ $*" >&2; }
@@ -329,8 +327,9 @@ main() {
 # ZSH_EVAL_CONTEXT contains "file" when sourced, and is "toplevel" or unset when executed.
 if [[ "${ZSH_EVAL_CONTEXT:-}" == *file ]]; then
   # Script is being sourced — define `ws` as a shell function
-  ws() { main "$@"; }
+  ws() { set -euo pipefail; main "$@"; }
 else
   # Script is being executed directly
+  set -euo pipefail
   main "$@"
 fi
