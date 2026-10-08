@@ -1,13 +1,3 @@
-# Disable git commit signing when running inside Pi.
-# Pi runs in background terminal tabs where 1Password can't show Touch ID prompts,
-# causing the SSH agent to consistently refuse signing. Unsigned commits are
-# fine for Pi's workflow; the user can sign manually when needed.
-if [[ -n "${PI_CODING_AGENT:-}" ]]; then
-  export GIT_CONFIG_COUNT=1
-  export GIT_CONFIG_KEY_0="commit.gpgsign"
-  export GIT_CONFIG_VALUE_0="false"
-fi
-
 # Homebrew (must be first — other tools depend on brew PATH)
 # Login shells initialize this in .zprofile; inherited shells should not repeat it.
 if [[ -z "${HOMEBREW_PREFIX:-}" ]]; then
