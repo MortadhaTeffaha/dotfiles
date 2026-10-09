@@ -1,0 +1,6 @@
+{
+  "settings": {
+    "autoAuth": true,
+    "oauthCredentialStore": "encrypted-file"
+  }
+}
