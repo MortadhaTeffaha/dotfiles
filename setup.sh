@@ -535,6 +535,25 @@ with open(path, 'w') as f: f.writelines(lines)
 fi
 
 echo ""
+# Ensure ~/.config/mcp/mcp.json exists with oauthCredentialStore setting.
+# readPiMcpConfig() strips 'settings' from ~/.pi/agent/mcp.json, so the
+# shared-global config at ~/.config/mcp/mcp.json is required for the
+# encrypted-file OAuth credential store on headless workspaces.
+mkdir -p "$HOME/.config/mcp"
+MCP_SHARED="$HOME/.config/mcp/mcp.json"
+if [[ ! -f "$MCP_SHARED" ]]; then
+  cat > "$MCP_SHARED" << 'MCPEOF'
+{
+  "settings": {
+    "autoAuth": true,
+    "oauthCredentialStore": "encrypted-file"
+  }
+}
+MCPEOF
+  echo "Created $MCP_SHARED (encrypted-file OAuth store)"
+fi
+
+echo ""
 echo "=== Summary ==="
 [[ ${#skipped[@]} -gt 0 ]] && echo "Already installed: ${skipped[*]}"
 [[ ${#installed[@]} -gt 0 ]] && echo "Installed: ${installed[*]}"
