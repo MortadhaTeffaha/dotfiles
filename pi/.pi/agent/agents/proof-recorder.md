@@ -1,7 +1,7 @@
 ---
 name: proof-recorder
 description: Deterministic VHS proof generator used after code validation succeeds.
-model: ai-gw-baseten/baseten/zai-org/GLM-5.2
+model: ai-gw-databricks/databricks/glm-5-3-pt
 thinking: high
 tools: read, bash, write, edit
 spawning: false

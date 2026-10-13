@@ -1,7 +1,7 @@
 ---
 name: merge-readiness-reviewer
 description: Final pull-request gate checking CI, feedback, approvals, conflicts, proof, and repository requirements.
-model: ai-gw-baseten/baseten/zai-org/GLM-5.2
+model: ai-gw-databricks/databricks/glm-5-3-pt
 thinking: high
 spawning: false
 interactive: true

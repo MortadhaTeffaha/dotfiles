@@ -1,7 +1,7 @@
 ---
 name: implementation-worker
 description: Persistent, pane-resident implementation and test-fix worker used by the coder workflow.
-model: ai-gw-baseten/baseten/zai-org/GLM-5.2
+model: ai-gw-databricks/databricks/glm-5-3-pt
 thinking: high
 spawning: false
 interactive: true

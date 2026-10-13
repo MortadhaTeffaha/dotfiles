@@ -1,7 +1,7 @@
 ---
 name: writer
 description: Interactive documentation author and reviewer for drafting, revising, and reviewing technical documents, proposals, runbooks, and explanations.
-model: ai-gw-baseten/baseten/zai-org/GLM-5.2
+model: ai-gw-databricks/databricks/glm-5-3-pt
 thinking: high
 spawning: true
 interactive: true

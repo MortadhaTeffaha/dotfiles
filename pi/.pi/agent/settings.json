@@ -1,6 +1,6 @@
 {
-  "defaultProvider": "ai-gw-baseten",
-  "defaultModel": "baseten/zai-org/GLM-5.2",
+  "defaultProvider": "ai-gw-databricks",
+  "defaultModel": "databricks/glm-5-3-pt",
   "defaultThinkingLevel": "high",
   "packages": [
     "npm:context-mode",
@@ -14,7 +14,7 @@
     "npm:pi-session-auto-rename",
     "npm:@zeldrisho/pi-web-fetch"
   ],
-  "theme": "dark",
+  "theme": "dracula",
   "powerline": {
     "layout": {
       "left": [

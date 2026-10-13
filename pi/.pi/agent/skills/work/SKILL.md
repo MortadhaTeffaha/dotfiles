@@ -30,8 +30,8 @@ Use these named agents and their configured profile models:
 
 | Session type | Agent | Model |
 |---|---|---|
-| writer | `writer` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
-| coder | `coder` | `ai-gw-baseten/baseten/zai-org/GLM-5.2` |
+| writer | `writer` | `ai-gw-databricks/databricks/glm-5-3-pt` |
+| coder | `coder` | `ai-gw-databricks/databricks/glm-5-3-pt` |
 | generalist | `generalist` | *(default profile — no explicit model override)* |
 
 ## Routing protocol

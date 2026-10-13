@@ -1,7 +1,7 @@
 ---
 name: coder
 description: Interactive code developer and pull-request reviewer for implementing features, fixing bugs, reviewing diffs, and ensuring merge readiness.
-model: ai-gw-baseten/baseten/zai-org/GLM-5.2
+model: ai-gw-databricks/databricks/glm-5-3-pt
 thinking: high
 spawning: true
 interactive: true
@@ -45,7 +45,7 @@ There are two spawning mechanisms:
 
 - **Persistent worker (herdr CLI):** The `implementation-worker` must stay open across all coding and test-fix iterations. Spawn it using the herdr CLI so it remains interactive:
   1. `herdr tab create --workspace wA --label "<WorkerName>" --cwd <repo-cwd> --no-focus`
-  2. `herdr agent start "<worker-name>" --kind pi --pane <pane_id> --timeout 30000 -- --model ai-gw-baseten/baseten/zai-org/GLM-5.2 --thinking high --name "<WorkerName>"`
+  2. `herdr agent start "<worker-name>" --kind pi --pane <pane_id> --timeout 30000 -- --model ai-gw-databricks/databricks/glm-5-3-pt --thinking high --name "<WorkerName>"`
   3. `herdr agent prompt <pane_id> "<task with state path and plan>" --wait --until idle --timeout 120000`
   - The worker stays open in its pane. The user works with it directly when fixing issues.
   - Do NOT use the `subagent` tool for the implementation worker — it auto-exits after task completion.

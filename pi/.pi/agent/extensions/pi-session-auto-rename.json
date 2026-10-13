@@ -1,4 +1,4 @@
 {
-  "provider": "ai-gw-baseten",
-  "id": "baseten/zai-org/GLM-5.2"
+  "provider": "ai-gw-databricks",
+  "id": "databricks/glm-5-3-pt"
 }
