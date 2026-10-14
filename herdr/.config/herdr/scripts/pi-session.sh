@@ -29,6 +29,16 @@ fi
 export EDITOR="${EDITOR:-nvim}"
 export VISUAL="${VISUAL:-nvim}"
 
+# Use the persistent SSH agent symlink instead of the per-session socket.
+# SSH agent forwarding creates per-session sockets that die when the
+# session closes; the workspace maintains ~/.ssh/ssh_auth_sock as a
+# symlink to the current active session's agent. Pi outlives the SSH
+# session that launched it, so it must use the persistent path to keep
+# git SSH signing (1Password key via agent forwarding) working.
+if [ -S "$HOME/.ssh/ssh_auth_sock" ]; then
+  export SSH_AUTH_SOCK="$HOME/.ssh/ssh_auth_sock"
+fi
+
 agents_dir="$HOME/.pi/agent/agents"
 
 # Build the menu: "file_path — name — description"
