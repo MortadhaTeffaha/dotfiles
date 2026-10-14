@@ -5,6 +5,30 @@ set -euo pipefail
 # Reads agent definitions from ~/.pi/agent/agents/*.md, shows an fzf
 # menu, parses frontmatter, and launches pi with the right flags.
 
+# Source env.sh to pick up workspace-specific environment variables
+# (PI_MCP_ADAPTER_OAUTH_FILE_KEY, DDTOOL_AUTH_LOGIN_MODE, EDITOR, etc.)
+# that are normally only set in interactive zsh shells via .zshrc.
+# We can't source ~/.config/zsh/*.sh directly because those files use
+# zsh-specific syntax (bindkey, zmodload, local). Instead, load the
+# critical env vars here.
+
+# OAuth encryption key for MCP encrypted-file credential store
+_oauth_key_file="$HOME/.pi/agent/.oauth-key"
+if [ -f "$_oauth_key_file" ]; then
+  export PI_MCP_ADAPTER_OAUTH_FILE_KEY="$(cat "$_oauth_key_file")"
+fi
+unset _oauth_key_file
+
+# Force device-flow auth on headless workspaces (no browser available)
+if [ -n "${WORKSPACES_DAEMON_SOCKET:-}" ]; then
+  export DDTOOL_AUTH_LOGIN_MODE=device
+  unset BROWSER 2>/dev/null || true
+fi
+
+# Editor for Pi's Ctrl+G prompt editor
+export EDITOR="${EDITOR:-nvim}"
+export VISUAL="${VISUAL:-nvim}"
+
 agents_dir="$HOME/.pi/agent/agents"
 
 # Build the menu: "file_path — name — description"
